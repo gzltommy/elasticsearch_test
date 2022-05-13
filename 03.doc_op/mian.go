@@ -143,7 +143,7 @@ func main() {
 	//	panic(err)
 	//}
 
-	// 根据条件删除文档
+	// 根据条件 删除文档
 	_, err = client.DeleteByQuery("blogs"). // 设置索引名
 						Query(elastic.NewTermQuery("Author", "tizi")). // 设置查询条件为: Author = tizi
 						ProceedOnVersionConflict().                    // 文档版本冲突也继续删除
