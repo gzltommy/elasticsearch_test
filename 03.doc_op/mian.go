@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/olivere/elastic/v7"
 	"log"
@@ -22,7 +23,7 @@ func main() {
 	client, err := elastic.NewClient(
 		elastic.SetSniff(false), // docker 里面运行的 es 需要带上这个 option
 		// elasticsearch 服务地址，多个服务地址使用逗号分隔
-		elastic.SetURL("http://192.168.24.132:9200", "http://127.0.0.1:9201"),
+		elastic.SetURL("http://192.168.151.97:9200"),
 		// 基于 http base auth 验证机制的账号和密码
 		//elastic.SetBasicAuth("user", "secret"),
 		// 启用 gzip 压缩
@@ -34,7 +35,10 @@ func main() {
 		// 设置错误日志输出
 		elastic.SetErrorLog(log.New(os.Stderr, "ELASTIC ", log.LstdFlags)),
 		// 设置 info 日志输出
-		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)),
+		// 设置 请求追踪（调试时启用）
+		elastic.SetTraceLog(log.New(os.Stdout, "", log.LstdFlags)), // 这一 必须的
+	)
 	if err != nil {
 		// Handle error
 		fmt.Printf("连接失败: %v\n", err)
@@ -46,40 +50,40 @@ func main() {
 	// 执行ES请求需要提供一个上下文对象
 	ctx := context.Background()
 
-	//// 定义一篇博客
-	//blog := Article{Title: "golang es教程", Content: "go如何操作ES", Author: "tizi", Created: time.Now()}
-	//
-	//// 使用client创建一个新的文档
-	//put1, err := client.Index().
-	//	Index("blogs"). // 设置索引名称
-	//	Id("1"). // 设置文档id
-	//	BodyJson(blog). // 指定前面声明 struct 对象
-	//	Do(ctx) // 执行请求，需要传入一个上下文对象
-	//if err != nil {
-	//	// Handle error
-	//	panic(err)
-	//}
-	//
-	//fmt.Printf("文档Id %s, 索引名 %s\n", put1.Id, put1.Index)
+	// 定义一篇博客
+	blog := Article{Title: "golang es教程", Content: "go如何操作ES", Author: "tizi", Created: time.Now()}
+
+	// 使用client创建一个新的文档
+	put1, err := client.Index().
+		Index("blogs"). // 设置索引名称
+		Id("1").        // 设置文档id
+		BodyJson(blog). // 指定前面声明 struct 对象
+		Do(ctx)         // 执行请求，需要传入一个上下文对象
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+
+	fmt.Printf("文档Id %s, 索引名 %s\n", put1.Id, put1.Index)
 
 	// 根据 id 查询文档
-	//get1, err := client.Get().
-	//	Index("blogs"). // 指定索引名
-	//	Id("1"). // 设置文档id
-	//	Do(ctx) // 执行请求
-	//if err != nil {
-	//	// Handle error
-	//	panic(err)
-	//}
-	//if get1.Found {
-	//	fmt.Printf("文档id=%s 版本号=%d 索引名=%s\n", get1.Id, get1.Version, get1.Index)
-	//}
-	//
-	//// 手动将文档内容转换成 go struct 对象
-	//msg2 := Article{}
-	//data, _ := get1.Source.MarshalJSON() // 提取文档内容，原始类型是 json 数据
-	//json.Unmarshal(data, &msg2)          // 将 json 转成 struct 结果
-	//fmt.Println(msg2.Title)              // 打印结果
+	get1, err := client.Get().
+		Index("blogs"). // 指定索引名
+		Id("1").        // 设置文档id
+		Do(ctx)         // 执行请求
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+	if get1.Found {
+		fmt.Printf("文档id=%s 版本号=%d 索引名=%s\n", get1.Id, get1.Version, get1.Index)
+	}
+
+	// 手动将文档内容转换成 go struct 对象
+	msg2 := Article{}
+	data, _ := get1.Source.MarshalJSON() // 提取文档内容，原始类型是 json 数据
+	json.Unmarshal(data, &msg2)          // 将 json 转成 struct 结果
+	fmt.Println(msg2.Title)              // 打印结果
 
 	//// 查询 id 等于 1,2,3 的博客内容
 	//result, err := client.MultiGet().

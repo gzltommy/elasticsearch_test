@@ -23,7 +23,12 @@ func main() {
 		// 设置错误日志输出
 		elastic.SetErrorLog(log.New(os.Stderr, "ELASTIC ", log.LstdFlags)),
 		// 设置 info 日志输出
-		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)),
+
+		// 设置 请求追踪（调试时启用）
+		elastic.SetTraceLog(log.New(os.Stdout, "", log.LstdFlags)), // 这一 必须的
+	)
+
 	if err != nil {
 		// Handle error
 		panic(err)

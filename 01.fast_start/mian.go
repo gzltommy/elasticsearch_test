@@ -51,7 +51,6 @@ type Weibo struct {
 func main() {
 	// 创建client
 	client, err := elastic.NewClient(
-		//elastic.SetURL("http://192.168.24.132:9200", "http://127.0.0.1:9201"),
 		elastic.SetURL("http://192.168.24.132:9200"),
 		//elastic.SetBasicAuth("user", "secret")
 		elastic.SetSniff(false),
